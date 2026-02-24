@@ -30,9 +30,9 @@ import * as dat from 'dat.gui';
 // };
 
 // const textureLoader = new THREE.TextureLoader(loadingManager);
-const textureLoader = new THREE.TextureLoader();
-// 直接加载纹理，纹理加载器会自动处理图像的加载和更新，所以我们不需要手动创建一个Image对象了,可以添加多个纹理
-const texture = textureLoader.load('/textures/door/color.jpg'); 
+// const textureLoader = new THREE.TextureLoader();
+// // 直接加载纹理，纹理加载器会自动处理图像的加载和更新，所以我们不需要手动创建一个Image对象了,可以添加多个纹理
+// const texture = textureLoader.load('/textures/door/color.jpg'); 
 // 可以在路径后加3个问号来设置纹理的参数，比如：
 // const texture = textureLoader.load('/textures/door/color.jpg???minFilter=NearestFilter&magFilter=NearestFilter&wrapS=RepeatWrapping&wrapT=RepeatWrapping');
 
@@ -54,10 +54,10 @@ const texture = textureLoader.load('/textures/door/color.jpg');
 // mip mappping 用一个方形贴图时,会有多个大小的贴图,当物体离相机远时,使用小的贴图,当物体离相机近时,使用大的贴图,这样可以提高性能和视觉效果. mip mappping 需要纹理的宽高是2的幂次方,比如256x256,512x512等. 如果纹理的宽高不是2的幂次方,就不能使用mip mappping了,只能使用NearestFilter或LinearFilter了.
 // minification filter（缩小过滤）控制纹理在物体离相机较远时的显示效果，常用的选项有：NearestFilter（最近点过滤）和 LinearFilter（线性过滤）。当物体离相机较远时，使用 NearestFilter 会让纹理看起来更模糊，而使用 LinearFilter 会让纹理看起来更平滑。对于性能要求较高的应用，可以选择 NearestFilter，而对于视觉效果要求较高的应用，可以选择 LinearFilter。
 // magnification filter（放大过滤）控制纹理在物体离相机较近时的显示效果，常用的选项有：NearestFilter（最近点过滤）和 LinearFilter（线性过滤）。当物体离相机较近时，使用 NearestFilter 会让纹理看起来更模糊，而使用 LinearFilter 会让纹理看起来更平滑。对于性能要求较高的应用，可以选择 NearestFilter，而对于视觉效果要求较高的应用，可以选择 LinearFilter。
-// 如果用minFilter,那么就不需要mipmap
-texture.generateMipmaps = false; // 关闭mip mappping，这样就不会生成多个大小的贴图了
-texture.minFilter = THREE.NearestFilter; // 设置纹理的缩小过滤方式，这样它在物体离相机较远时就会使用最近点过滤了
-texture.magFilter = THREE.NearestFilter; // 设置纹理的放大过滤方式，这样物体放大时会更清晰
+// // 如果用minFilter,那么就不需要mipmap
+// texture.generateMipmaps = false; // 关闭mip mappping，这样就不会生成多个大小的贴图了
+// texture.minFilter = THREE.NearestFilter; // 设置纹理的缩小过滤方式，这样它在物体离相机较远时就会使用最近点过滤了
+// texture.magFilter = THREE.NearestFilter; // 设置纹理的放大过滤方式，这样物体放大时会更清晰
 //  使用纹理的注意事项
 // 1.纹理的大小 jpg 有损压缩,但是小 png 无损压缩,但是大  用一些软件压缩图片到合适的位置,博主推荐TinyPNG
 // 2.图像的尺寸  纹理的宽高最好是2的幂次方，比如256x256、512x512等，这样可以更好地利用GPU的性能和内存。如果纹理的宽高不是2的幂次方，可能会导致性能下降或者无法使用某些功能，比如mip mappping。
@@ -165,7 +165,7 @@ Object
 const materials = new THREE.MeshStandardMaterial()
 materials.metalness = 0.45
 materials.roughness = 0.65
-materials.map = texture
+// materials.map = texture
 // 加深阴影部分
 // materials.aoMap = texture1
 // materials.aoMapIntensity = 2
@@ -203,25 +203,46 @@ gui.add(materials,"roughness").min(0).max(1).step(0.0001)
 const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), materials);
 sphere.position.x = -1.5;
 
-const plane = new THREE.Mesh(new THREE.PlaneGeometry(1,1),materials)
+const cube = new THREE.Mesh(new THREE.BoxGeometry(1,1,1),materials)
 
 const torus = new THREE.Mesh(new THREE.TorusGeometry(0.3,0.2,16,32),materials)
-
 torus.position.x =1.5
-scene.add(sphere,plane,torus); 
+const plane = new THREE.Mesh(new THREE.PlaneGeometry(5,5),materials)
+plane.position.y =-1
+plane.rotation.x = - Math.PI * 0.5
+scene.add(sphere,cube,torus,plane); 
 
 // 光照
-const amblight = new THREE.AmbientLight(0xffffff,1)
+const amblight = new THREE.AmbientLight(0xffffff,0.5)
 scene.add(amblight)
-const pointLight = new THREE.PointLight(0xffffff,100)
-pointLight.position.x = 2
-pointLight.position.y = 3
-pointLight.position.z = 4
+// gui.add(amblight,'intensity').min(0).max(1).step(0.01)
+const pointLight = new THREE.PointLight(0xff9000,1)
+// pointLight.position.x = 2
+// pointLight.position.y = 3
+// pointLight.position.z = 4
 scene.add(pointLight)
+const directionalLight = new THREE.DirectionalLight(0x00fffc,0.3)
+// // 改光照位置
+directionalLight.position.set(1,0.25,0)
+scene.add(directionalLight)
 
+const hemisphereLight = new THREE.HemisphereLight(0xff0000,0x0000ff,1)
+scene.add(hemisphereLight)
+// 只作用于meshstandardmaterial和meshphysicalmaterial
+const rectAreaLight = new THREE.RectAreaLight(0x4e00ff,2,1,1)
+rectAreaLight.position.set(-1.5,0,1.5)
+scene.add(rectAreaLight)
 
+const spotLight = new THREE.SpotLight(0x78ff00,0.5,10,Math.PI*0.8,0.25,1)
+// spotLight.position.add(0,2,3)
+scene.add(spotLight)
 
+// light helper
+const hemisphereLighterHelper = new THREE.HemisphereLightHelper(hemisphereLight,0.2)
+scene.add(hemisphereLighterHelper)
 
+const directionalHelper = new THREE.DirectionalLightHelper(directionalLight,0.2)
+scene.add(directionalHelper)
 
 // // geometry的库里有很多几何体，可以直接使用，比如：SphereGeometry（球体），PlaneGeometry（平面），TorusGeometry（圆环），等等。你也可以自己创建几何体，或者从外部文件加载几何体。
 // const cube = new THREE.Mesh(geometry, materials);
@@ -250,8 +271,8 @@ scene.add(pointLight)
 // cube.position.normalize(); // 让它的长度为1，保持它的朝向不变
 
 // // 坐标轴辅助器
-// const axesHelper = new THREE.AxesHelper(2);
-// scene.add(axesHelper);
+const axesHelper = new THREE.AxesHelper(2);
+scene.add(axesHelper);
 
 // 缩放物体的大小
 // cube.scale.set(2, 1, 1); // x轴放大2倍，y轴和z轴不变
@@ -358,11 +379,11 @@ function animate() {
     // cube.rotation.x = Math.sin(elapsedTime);
 
     sphere.rotation.y = 0.1*elapsedTime
-    plane.rotation.y = 0.1*elapsedTime
+    cube.rotation.y = 0.1*elapsedTime
     torus.rotation.y = 0.1*elapsedTime
 
     sphere.rotation.x = 0.15*elapsedTime
-    plane.rotation.x = 0.15*elapsedTime
+    cube.rotation.x = 0.15*elapsedTime
     torus.rotation.x = 0.15*elapsedTime
 
 
